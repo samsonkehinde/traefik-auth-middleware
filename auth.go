@@ -9,10 +9,12 @@ import (
 	"net/url"
 )
 
+// Config the plugin configuration.
 type Config struct {
 	IAM map[string]string
 }
 
+// Create the default plugin configuration.
 func CreateConfig() *Config {
 	return &Config{
 		IAM: make(map[string]string),
