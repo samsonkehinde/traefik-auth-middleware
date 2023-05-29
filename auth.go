@@ -21,7 +21,7 @@ func CreateConfig() *Config {
 	}
 }
 
-type Query struct {
+type AuthData struct {
 	next                   http.Handler
 	name                   string
 	clientId               string
@@ -40,37 +40,38 @@ type KeycloakResponse struct {
 	Scope            string `json:"scope"`
 }
 
+// Create an instance of the plugin.
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	if len(config.IAM) != 4 {
 		return nil, fmt.Errorf("IAM Configuration must be defined")
 	}
 
-	return &Cerbere{
+	return &AuthData{
 		next:                   next,
 		name:                   name,
 		clientId:               config.IAM["ClientId"],
 		iamUrl:                 config.IAM["Url"],
-		userQueryParamName:     config.IAM["UserQueryParamName"],
-		passwordQueryParamName: config.IAM["PasswordQueryParamName"],
+		userQueryParamName:     config.IAM["usernameParam"],
+		passwordQueryParamName: config.IAM["passwordParam"],
 	}, nil
 }
 
-func (cerbereConfig *Cerbere) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+func (ad *AuthData) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query()
-	username, usernamePresent := query[cerbereConfig.userQueryParamName]
-	apikey, apikeyPresent := query[cerbereConfig.passwordQueryParamName]
+	username, usernamePresent := query[ad.userParam]
+	password, passwordPresent := query[ad.passwordParam]
 
-	if !usernamePresent || !apikeyPresent {
+	if !usernamePresent || !passwordPresent {
 		http.Error(rw, "MalformedQuery", http.StatusBadRequest)
 		return
 	}
 
-	authResponse, err := http.PostForm(cerbereConfig.iamUrl,
+	authResponse, err := http.PostForm(ad.iamUrl,
 		url.Values{
 			"grant_type": {"password"},
-			"client_id":  {cerbereConfig.clientId},
+			"client_id":  {ad.clientId},
 			"username":   {username[0]},
-			"password":   {apikey[0]},
+			"password":   {password[0]},
 		})
 
 	if err != nil {
