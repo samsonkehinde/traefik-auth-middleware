@@ -21,13 +21,13 @@ func CreateConfig() *Config {
 	}
 }
 
-type Cerbere struct {
+type Query struct {
 	next                   http.Handler
 	name                   string
 	clientId               string
 	iamUrl                 string
-	userQueryParamName     string
-	passwordQueryParamName string
+	usernameParam     string
+	passwordParam string
 }
 
 type KeycloakResponse struct {
