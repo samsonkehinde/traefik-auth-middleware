@@ -25,10 +25,11 @@ func CreateConfig() *Config {
 type AuthData struct {
 	next                   http.Handler
 	name                   string
-	clientId               string
-	iamUrl                 string
-	usernameParam     string
-	passwordParam string
+	config *Config
+//	clientId               string
+//	iamUrl                 string
+//	usernameParam     string
+//	passwordParam string
 }
 
 type KeycloakResponse struct {
@@ -50,17 +51,18 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	return &AuthData{
 		next:                   next,
 		name:                   name,
-		clientId:               config.IAM["ClientId"],
-		iamUrl:                 config.IAM["Url"],
-		userQueryParamName:     config.IAM["usernameParam"],
-		passwordQueryParamName: config.IAM["passwordParam"],
+		config: config
+//		clientId:               config.IAM["ClientId"],
+//		iamUrl:                 config.IAM["Url"],
+//		userQueryParamName:     config.IAM["usernameParam"],
+//		passwordQueryParamName: config.IAM["passwordParam"],
 	}, nil
 }
 
 func (ad *AuthData) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query()
-	username, usernamePresent := query[ad.userParam]
-	password, passwordPresent := query[ad.passwordParam]
+	username, usernamePresent := query[ad.config.IAM["usernameParam"]
+	password, passwordPresent := query[ad.config.IAM["passwordParam"]
 
 	if !usernamePresent || !passwordPresent {
 		http.Error(rw, "MalformedQuery", http.StatusBadRequest)
@@ -70,7 +72,7 @@ func (ad *AuthData) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	authResponse, err := http.PostForm(ad.iamUrl,
 		url.Values{
 			"grant_type": {"password"},
-			"client_id":  {ad.clientId},
+			"client_id":  {ad.config.IAM["ClientId"]},
 			"username":   {username[0]},
 			"password":   {password[0]},
 		})
