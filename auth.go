@@ -21,6 +21,7 @@ func CreateConfig() *Config {
 	}
 }
 
+// AuthData a Traefik Authorization plugin.
 type AuthData struct {
 	next                   http.Handler
 	name                   string
